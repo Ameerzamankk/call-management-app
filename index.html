@@ -13,7 +13,7 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Unified%20Enterprise%22%2C%22short_name%22%3A%22Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F9FC%22%2C%22theme_color%22%3A%22%231D4ED8%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F9063%2F9063435.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%2Fpng%22%7D%5D%7D">
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-app: #F8FAFC; 
@@ -406,8 +406,8 @@
                 <input type="password" id="pWord" class="form-input-box" placeholder="Enter password">
                 <button class="action-submit-btn" onclick="checkLogin()">Authorize Login</button>
                 
-                <!-- 📲 Manual Install Button (പോപ്പ്അപ്പ് വന്നില്ലെങ്കിൽ ഇത് വഴി ഇൻസ്റ്റാൾ ചെയ്യാം) -->
-                <button id="manualInstallBtn" class="action-submit-btn" style="background:#475569; margin-top:10px; display:none;">📲 Install App To Mobile</button>
+                <!-- 📲 ലോഗിൻ കാർഡിനുള്ളിലെ പുതിയ INSTALL APP ബട്ടൺ (ആവശ്യമെങ്കിൽ മാത്രം സ്ക്രീനിൽ കാണിക്കും) -->
+                <button id="loginInstallBtn" class="action-submit-btn" style="background:#16A34A; margin-top:12px; display:none;">📲 Install App to Mobile</button>
             </div>
         </div>
     </div>
@@ -674,22 +674,22 @@
 
         // 📲 PWA Installer Logic
         let deferredPrompt = null;
-        const manualInstallBtn = document.getElementById('manualInstallBtn');
+        const loginInstallBtn = document.getElementById('loginInstallBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // ബ്രൗസർ ഇൻസ്റ്റലേഷൻ സപ്പോർട്ട് ചെയ്യുന്നുണ്ടെങ്കിൽ ബട്ടൺ കാണിക്കും
-            if(manualInstallBtn) manualInstallBtn.style.display = 'block';
+            // ബ്രൗസർ റെഡിയാകുമ്പോൾ ലോഗിൻ വിൻഡോയിലെ ഇൻസ്റ്റാൾ ബട്ടൺ കാണിക്കും
+            if(loginInstallBtn) loginInstallBtn.style.display = 'block';
         });
 
-        if(manualInstallBtn) {
-            manualInstallBtn.addEventListener('click', () => {
+        if(loginInstallBtn) {
+            loginInstallBtn.addEventListener('click', () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then((choice) => {
                         if (choice.outcome === 'accepted') {
-                            manualInstallBtn.style.display = 'none';
+                            loginInstallBtn.style.display = 'none';
                         }
                         deferredPrompt = null;
                     });
@@ -799,12 +799,6 @@
                         document.getElementById('appBottomNav').style.display = 'flex';
                         
                         loadAllLogs();
-
-                        // 📲 ലോഗിൻ സക്സസ് ആയാൽ ഓട്ടോമാറ്റിക് പോപ്പ്അപ്പ് ട്രിഗർ ചെയ്യും (സപ്പോർട്ടഡ് ആണെങ്കിൽ)
-                        if (deferredPrompt) {
-                            deferredPrompt.prompt();
-                            deferredPrompt = null;
-                        }
 
                     } else {
                         errorDiv.style.display = 'block';
@@ -1104,7 +1098,7 @@
                 .catch(err => alert('Sync Timeout.'));
         }
 
-        // Service Worker
+        // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
@@ -1117,8 +1111,8 @@
                 const blob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(blob);
                 navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log("PWA Active"))
-                    .catch(err => console.log("SW Alert"));
+                    .then(() => console.log("PWA Service Worker ready."))
+                    .catch(err => console.log("SW bypass enabled"));
             });
         }
     </script>
