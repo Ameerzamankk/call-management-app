@@ -421,9 +421,7 @@
                 
                 <button id="loginInstallBtn" class="action-submit-btn" style="background:#16A34A; margin-top:12px; display:none;">📲 Install App to Mobile</button>
                 
-                <div id="backupInstallGuide" class="install-guide-box">
-                    💡 <b>ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യാൻ:</b> ബ്രൗസറിന്റെ മുകളിലെ 3 കുത്തുകളിൽ (അല്ലെങ്കിൽ താഴെയുള്ള Share ബട്ടണിൽ) ക്ലിക്ക് ചെയ്ത് <b>"Add to Home Screen"</b> സെലക്ട് ചെയ്യുക.
-                </div>
+                
             </div>
         </div>
     </div>
@@ -793,7 +791,7 @@
             const loginBtn = document.querySelector('#loginOverlay .action-submit-btn');
 
             if(!u || !p) { alert('Fill credentials.'); return; }
-            loginBtn.innerText = "Authorizing Encrypted Token...";
+            loginBtn.innerText = "Login...";
             loginBtn.disabled = true;
 
             fetch(`${API_URL}?action=verifyLogin&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&_=${new Date().getTime()}`)
