@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Workspace">
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Unified%20Enterprise%22%2C%22short_name%22%3A%22Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F9FC%22%2C%22theme_color%22%3A%22%231D4ED8%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F9063%2F9063435.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%2Fpng%22%7D%5D%7D">
+    <!-- 🔗 GitHub Pages-ൽ കൃത്യമായി പാത്ത് കിട്ടാൻ തിരുത്തിയ രൂപം -->
+    <link rel="manifest" href="./manifest.json">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -390,6 +390,19 @@
             justify-content: center; align-items: center; z-index: 10001; padding: 20px;
         }
         .modal-alert-box { background: var(--bg-card); border-radius: var(--radius-card); padding: 24px; width: 100%; max-width: 450px; box-shadow: var(--shadow-lg); border:1px solid var(--border-subtle); }
+
+        .install-guide-box {
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #1E40AF;
+            line-height: 1.4;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -406,8 +419,11 @@
                 <input type="password" id="pWord" class="form-input-box" placeholder="Enter password">
                 <button class="action-submit-btn" onclick="checkLogin()">Authorize Login</button>
                 
-                <!-- 📲 ലോഗിൻ കാർഡിനുള്ളിലെ പുതിയ INSTALL APP ബട്ടൺ (ആവശ്യമെങ്കിൽ മാത്രം സ്ക്രീനിൽ കാണിക്കും) -->
                 <button id="loginInstallBtn" class="action-submit-btn" style="background:#16A34A; margin-top:12px; display:none;">📲 Install App to Mobile</button>
+                
+                <div id="backupInstallGuide" class="install-guide-box">
+                    💡 <b>ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യാൻ:</b> ബ്രൗസറിന്റെ മുകളിലെ 3 കുത്തുകളിൽ (അല്ലെങ്കിൽ താഴെയുള്ള Share ബട്ടണിൽ) ക്ലിക്ക് ചെയ്ത് <b>"Add to Home Screen"</b> സെലക്ട് ചെയ്യുക.
+                </div>
             </div>
         </div>
     </div>
@@ -672,15 +688,16 @@
         let sessionName = "";
         let sessionUser = ""; 
 
-        // 📲 PWA Installer Logic
+        // PWA Installer Logic
         let deferredPrompt = null;
         const loginInstallBtn = document.getElementById('loginInstallBtn');
+        const backupGuide = document.getElementById('backupInstallGuide');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // ബ്രൗസർ റെഡിയാകുമ്പോൾ ലോഗിൻ വിൻഡോയിലെ ഇൻസ്റ്റാൾ ബട്ടൺ കാണിക്കും
             if(loginInstallBtn) loginInstallBtn.style.display = 'block';
+            if(backupGuide) backupGuide.style.display = 'none';
         });
 
         if(loginInstallBtn) {
@@ -695,6 +712,16 @@
                     });
                 }
             });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            if(loginInstallBtn) loginInstallBtn.style.display = 'none';
+            if(backupGuide) backupGuide.style.display = 'none';
+        });
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS && backupGuide) {
+            backupGuide.innerHTML = '🍏 <b>iPhone-ൽ ഇൻസ്റ്റാൾ ചെയ്യാൻ:</b> താഴെയുള്ള <b>Share (അമ്പ് അടയാളം)</b> ക്ലിക്ക് ചെയ്ത് <b>"Add to Home Screen"</b> സെലക്ട് ചെയ്യുക.';
         }
 
         function bootstrapEngineersListOnly() {
@@ -799,7 +826,6 @@
                         document.getElementById('appBottomNav').style.display = 'flex';
                         
                         loadAllLogs();
-
                     } else {
                         errorDiv.style.display = 'block';
                         loginBtn.innerText = "Authorize Login";
@@ -1098,21 +1124,25 @@
                 .catch(err => alert('Sync Timeout.'));
         }
 
-        // Service Worker Registration
+        // Service Worker Logic
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    self.addEventListener('install', (e) => self.skipWaiting());
+                    var CACHE_NAME = 'workspace-v2';
+                    var urlsToCache = [location.href, 'manifest.json'];
+                    self.addEventListener('install', function(e) {
+                        e.waitUntil(caches.open(CACHE_NAME).then(function(cache) { return cache.addAll(urlsToCache); }));
+                    });
                     self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', (e) => {
-                        e.respondWith(fetch(e.request).catch(() => new Response("Offline Mode")));
+                    self.addEventListener('fetch', function(e) {
+                        e.respondWith(caches.match(e.request).then(function(res) { return res || fetch(e.request); }));
                     });
                 `;
                 const blob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(blob);
                 navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log("PWA Service Worker ready."))
-                    .catch(err => console.log("SW bypass enabled"));
+                    .then(() => console.log("SW Online"))
+                    .catch(err => console.log("SW Error"));
             });
         }
     </script>
