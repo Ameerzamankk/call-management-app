@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workspace Dashboard</title>
+    
+    <meta name="theme-color" content="#1D4ED8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Workspace">
+
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Unified%20Enterprise%20Workspace%22%2C%22short_name%22%3A%22Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F9FC%22%2C%22theme_color%22%3A%22%231D4ED8%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F9063%2F9063435.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%2Fpng%22%7D%5D%7D">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #F8FAFC; 
+            --bg-card: #FFFFFF;
+            --border-subtle: #CBD5E1; 
+            
+            --text-dark: #0F172A; 
+            --text-muted: #475569; 
+            
+            --primary: #1D4ED8; 
+            --primary-light: #EFF6FF; 
+            --dark-accent: #0F172A;
+            
+            --success: #16A34A; 
+            --success-light: #F0FDF4;
+            --warning: #D97706; 
+            --warning-light: #FEF6E6;
+            --info: #2563EB; 
+            --info-light: #EEF4FF;
+            --purple: #7C3AED;
+            --purple-light: #F4F0FF;
+
+            --radius-card: 16px;
+            --radius-pill: 30px;
+            --shadow-app: 0 4px 20px rgba(142, 151, 168, 0.08);
+            --shadow-nav: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-app);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* Header Section */
+        .app-header {
+            background: var(--bg-card);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        .welcome-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .profile-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .user-real-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+        .user-role-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .header-actions-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sync-icon-btn {
+            background: var(--bg-app);
+            border: 1px solid var(--border-subtle);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: transform 0.2s;
+        }
+        .logout-top-btn {
+            background: var(--primary-light);
+            border: 1px solid rgba(29, 78, 216, 0.25);
+            color: var(--primary);
+            padding: 0 12px;
+            height: 38px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .sync-icon-btn:active, .logout-top-btn:active { transform: scale(0.95); }
+
+        /* Main Content Container */
+        .main-content {
+            padding: 14px;
+            max-width: 600px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        /* Compact Metrics Grid */
+        .metrics-small-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .metric-tile {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 14px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-app);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tile-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .tile-info { flex: 1; }
+        .tile-title { font-size: 12px; font-weight: 800; color: var(--text-muted); margin: 0; }
+        .tile-value { font-size: 20px; font-weight: 800; color: var(--text-dark); margin-top: 2px; }
+
+        .tile-home { background: #E2E8F0; color: var(--text-dark); }
+        .tile-pending { background: var(--warning-light); color: var(--warning); }
+        .tile-spare { background: var(--purple-light); color: var(--purple); }
+        .tile-waiting { background: var(--info-light); color: var(--info); }
+        .tile-resolved { background: var(--success-light); color: var(--success); }
+
+        /* Section Headers */
+        .section-header-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 18px 0 10px 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Dynamic Log Rows */
+        .log-list-row {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-app);
+        }
+        .log-top-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .log-client-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+        .log-meta-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .status-pill-text {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .log-body-details {
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 600;
+            line-height: 1.4;
+            background: #EDF2F7;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 8px 0;
+            border-left: 3px solid var(--text-muted);
+        }
+        .log-footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-subtle);
+        }
+
+        .native-call-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #E8F5E9;
+            color: #15803D; 
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid #BBF7D0;
+        }
+        .native-select {
+            padding: 12px;
+            background: var(--bg-app);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Advanced Filter Box Component */
+        .advance-filter-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 14px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-app);
+            margin-bottom: 16px;
+            margin-top: 10px;
+        }
+        .filter-grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .filter-grid-row.single-col { grid-template-columns: 1fr; }
+
+        /* Floating Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 5px 24px 5px;
+            border-top: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-nav);
+            z-index: 999;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10.5px;
+            font-weight: 800;
+            width: 20%; 
+            transition: color 0.2s;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 18px; }
+
+        /* Forms Popups Style Sheets */
+        .bottom-sheet-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 20, 25, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .bottom-sheet-content {
+            background: var(--bg-card);
+            width: 100%;
+            max-width: 600px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+            animation: slideUp 0.3s ease-out;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; }
+        .sheet-title { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-dark); }
+        .sheet-close-btn { background: var(--bg-app); border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; cursor: pointer; display:flex; align-items:center; justify-content:center;}
+
+        .form-label { font-size: 12px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: block; }
+        .form-input-box { width: 100%; padding: 12px; background: var(--bg-app); border: 1px solid var(--border-subtle); border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 14px; outline: none; }
+        .form-input-box:focus { border-color: var(--primary); background: #FFF; }
+        .action-submit-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: var(--radius-pill); font-weight: 800; font-size: 14px; cursor: pointer; }
+
+        /* Settings Style Configurations */
+        .settings-menu-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .settings-menu-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            padding: 18px 16px;
+            border-radius: var(--radius-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: var(--shadow-app);
+        }
+        .settings-menu-item:active { background: #F0F3F9; }
+        .settings-menu-left { display: flex; align-items: center; gap: 12px; }
+
+        /* Fullscreen Overlay Login View */
+        #loginOverlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: var(--bg-app);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        .login-mobile-view { width: 100%; max-width: 400px; text-align: center; }
+        .brand-logo-ui { font-size: 32px; font-weight: 900; color: var(--dark-accent); margin-bottom: 5px; }
+        .brand-logo-ui span { color: var(--primary); }
+        .login-welcome-text { color: var(--text-muted); font-size: 14px; font-weight: 700; margin-bottom: 35px; }
+        .login-card-box { background: var(--bg-card); border-radius: var(--radius-card); padding: 30px 24px; box-shadow: var(--shadow-app); border: 1px solid var(--border-subtle); text-align: left; }
+
+        .modal-blur-bg {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(15, 20, 25, 0.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            justify-content: center; align-items: center; z-index: 10001; padding: 20px;
+        }
+        .modal-alert-box { background: var(--bg-card); border-radius: var(--radius-card); padding: 24px; width: 100%; max-width: 450px; box-shadow: var(--shadow-lg); border:1px solid var(--border-subtle); }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-mobile-view">
+            <div class="brand-logo-ui">Call Management System<span>.</span></div>
+            <div class="login-welcome-text">Sign in to sync dashboard</div>
+            <div class="login-card-box">
+                <div id="loginError" style="color:var(--primary); font-weight:800; font-size:13px; margin-bottom:15px; display:none; text-align:center;">Access Denied. Check Credentials.</div>
+                <label class="form-label">Username</label>
+                <input type="text" id="uName" class="form-input-box" placeholder="Enter username">
+                <label class="form-label">Password</label>
+                <input type="password" id="pWord" class="form-input-box" placeholder="Enter password">
+                <button class="action-submit-btn" onclick="checkLogin()">Authorize Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="verifyModal" class="modal-blur-bg">
+        <div class="modal-alert-box">
+            <h3 id="modalTitle" style="margin:0 0 10px 0; font-size:16px; font-weight:800;">Transition Architecture</h3>
+            <label class="form-label">Service Log Updates / Remarks</label>
+            <textarea id="actionRemarks" class="form-input-box" rows="3" placeholder="Write remarks entry..." style="resize: none;"></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button style="flex:1; padding:12px; border-radius:30px; border:none; font-weight:800; background:var(--bg-app); color:var(--text-dark);" onclick="closeModal()">Cancel</button>
+                <button style="flex:1; padding:12px; border-radius:30px; border:none; font-weight:800; background:var(--primary); color:white;" onclick="commitStatusUpdate()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheetLogoutConfirm" class="bottom-sheet-overlay" onclick="closeFormSheet('sheetLogoutConfirm')">
+        <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+            <div class="sheet-header" style="border-bottom: none; margin-bottom: 10px;">
+                <h3 class="sheet-title" style="font-size: 18px;">Confirm Logout?</h3>
+                <button class="sheet-close-btn" onclick="closeFormSheet('sheetLogoutConfirm')">✕</button>
+            </div>
+            <p style="margin: 0 0 24px 0; font-size: 14px; font-weight: 700; color: var(--text-muted); line-height: 1.5;">Are you sure you want to log out of your session? Unsaved pipeline metrics requests will need to be re-synchronized.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="action-submit-btn" style="background: var(--bg-app); color: var(--text-dark); flex: 1;" onclick="closeFormSheet('sheetLogoutConfirm')">Cancel</button>
+                <button class="action-submit-btn" style="background: var(--primary); color: white; flex: 1;" onclick="confirmAppLogoutExecution()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheetUserSpace" class="bottom-sheet-overlay" onclick="closeFormSheet('sheetUserSpace')">
+        <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <h3 class="sheet-title">Create New Account</h3>
+                <button class="sheet-close-btn" onclick="closeFormSheet('sheetUserSpace')">✕</button>
+            </div>
+            <label class="form-label">Account Identity Username</label>
+            <input type="text" id="newUsername" class="form-input-box" placeholder="e.g., rahul123">
+            <label class="form-label">Password</label>
+            <input type="password" id="newPassword" class="form-input-box" placeholder="Minimum 6 characters">
+            <label class="form-label">Staff Real Name</label>
+            <input type="text" id="newRealName" class="form-input-box" placeholder="e.g., Rahul">
+            <label class="form-label">Role Architecture Mapping</label>
+            <select id="newRole" class="form-input-box" style="cursor: pointer;">
+                <option value="Engineer">Field Engineer</option>
+                <option value="Admin">System Admin</option>
+            </select>
+            <button type="button" class="action-submit-btn" onclick="createUserAccount()">Create An Account</button>
+            <div id="userMgmtMsg" style="margin-top: 15px; font-weight: 800; font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="sheetOverrideSpace" class="bottom-sheet-overlay" onclick="closeFormSheet('sheetOverrideSpace')">
+        <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <h3 class="sheet-title" style="color:var(--primary)">User Password Reset</h3>
+                <button class="sheet-close-btn" onclick="closeFormSheet('sheetOverrideSpace')">✕</button>
+            </div>
+            <label class="form-label">Select User Identity / Username</label>
+            <select id="resetTargetUser" class="native-select">
+                <option value="">-- Loading Users... --</option>
+            </select>
+            
+            <label class="form-label" style="margin-top: 14px;">New Password</label>
+            <input type="password" id="resetNewPassword" class="form-input-box" placeholder="Enter new password code">
+            <button type="button" class="action-submit-btn" onclick="adminResetUserPassword()">Reset Password </button>
+            <div id="userOverrideMsg" style="margin-top: 15px; font-weight: 800; font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="sheetPasswordSpace" class="bottom-sheet-overlay" onclick="closeFormSheet('sheetPasswordSpace')">
+        <div class="bottom-sheet-content" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <h3 class="sheet-title">Update Password</h3>
+                <button class="sheet-close-btn" onclick="closeFormSheet('sheetPasswordSpace')">✕</button>
+            </div>
+            <label class="form-label">Password</label>
+            <input type="password" id="changePWord" class="form-input-box" placeholder="Type new secret code">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPWord" class="form-input-box" placeholder="Retype secret code">
+            <button type="button" class="action-submit-btn" onclick="executePasswordChange()">Reset Password</button>
+            <div id="passMgmtMsg" style="margin-top: 15px; font-weight: 800; font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="appHeader" class="app-header" style="display: none;">
+        <div class="welcome-label">WELCOME BACK</div>
+        <div class="profile-container">
+            <div class="user-name-wrapper">
+                <span id="userRealName" class="user-real-name">User</span>
+                <span id="userRoleTag" class="user-role-badge">Loading...</span>
+            </div>
+            <div class="header-actions-wrapper">
+                <button class="sync-icon-btn" onclick="loadAllLogs()">🔄</button>
+                <button class="logout-top-btn" onclick="triggerAppLogoutPopup()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content" id="appContainer">
+        
+        <div id="tab-view-home">
+            <div class="metrics-small-grid">
+                <div class="metric-tile">
+                    <div class="tile-icon tile-home">🏠</div>
+                    <div class="tile-info">
+                        <p class="tile-title">Total Logs</p>
+                        <p class="tile-value" id="count-total">0</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="tile-icon tile-pending">⏳</div>
+                    <div class="tile-info">
+                        <p class="tile-title">Pending</p>
+                        <p class="tile-value" id="count-pending">0</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="tile-icon tile-spare">📦</div>
+                    <div class="tile-info">
+                        <p class="tile-title">Spare Pending</p>
+                        <p class="tile-value" id="count-spare">0</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="tile-icon tile-waiting">📞</div>
+                    <div class="tile-info">
+                        <p class="tile-title">Call Waiting</p>
+                        <p class="tile-value" id="count-waiting">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-tile" style="width:100%; margin-top:-4px; margin-bottom:15px;">
+                <div class="tile-icon tile-resolved">✅</div>
+                <div class="tile-info">
+                    <p class="tile-title">Resolved Status Ledger Entries</p>
+                    <p class="tile-value" id="count-resolved">0</p>
+                </div>
+            </div>
+
+            <div class="section-header-title">
+                <span style="color:var(--text-dark);">⚠️ Live Waiting Calls</span>
+            </div>
+            <div id="homeWaitingLogBoxContainer">
+                <p style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size:13px; font-weight:700;">No calls inside waiting vector</p>
+            </div>
+        </div>
+
+        <div id="tab-view-waiting" style="display: none;">
+            <div class="section-header-title">
+                <span style="color:var(--text-dark);">📞 Call Waiting</span>
+                <input type="text" id="devSearchWaiting" onkeyup="searchLedger('Waiting')" placeholder="🔍 Filter waiting..." style="padding: 6px 12px; font-size: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); outline: none; background: var(--bg-card); font-family: inherit; width: 45%; font-weight:700;">
+            </div>
+            <div id="waitingLogBoxContainer">
+                <p style="text-align: center; color: var(--text-muted); padding: 40px 0; font-weight:700;">Loading pipeline logs queue...</p>
+            </div>
+        </div>
+
+        <div id="tab-view-pending" style="display: none;">
+            <div class="section-header-title">
+                <span style="color:var(--text-dark);">⏳ Active Pending Operations Logs</span>
+                <input type="text" id="devSearchPending" onkeyup="searchLedger('Pending')" placeholder="🔍 Filter pending..." style="padding: 6px 12px; font-size: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); outline: none; background: var(--bg-card); font-family: inherit; width: 45%; font-weight:700;">
+            </div>
+            <div id="pendingLogBoxContainer">
+                <p style="text-align: center; color: var(--text-muted); padding: 40px 0; font-weight:700;">Loading operational vectors...</p>
+            </div>
+        </div>
+
+        <div id="tab-view-ledger" style="display: none;">
+            <div class="advance-filter-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <span style="font-size:13px; font-weight:800; color:var(--text-dark); text-transform:uppercase;">Advance Filtering</span>
+                    <button onclick="downloadAsExcel()" class="native-call-btn" style="background:#E3F2FD; color:#1D4ED8; border:1px solid #93C5FD; padding:5px 12px;">📥 Export Excel</button>
+                </div>
+                
+                <div id="ledgerFilterWrapperGrid" class="filter-grid-row">
+                    <select id="ledgerFilterStatus" class="native-select" onchange="searchLedger('Ledger')">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Spare Pending">Spare Pending</option>
+                        <option value="Call Waiting">Call Waiting</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                    <select id="ledgerFilterEngineer" class="native-select" onchange="searchLedger('Ledger')">
+                        <option value="">All Engineers</option>
+                    </select>
+                </div>
+                <input type="text" id="devSearchLedger" onkeyup="searchLedger('Ledger')" placeholder="🔍 Text search client / branch / issue..." class="form-input-box" style="margin-bottom: 0;">
+            </div>
+
+            <div id="ledgerLogBoxContainer">
+                <p style="text-align: center; color: var(--text-muted); padding: 40px 0; font-weight:700;">Loading global logs view...</p>
+            </div>
+        </div>
+
+        <div id="tab-view-security" style="display: none;">
+            <div class="section-header-title"><span style="color:var(--text-dark);">Application Configurations</span></div>
+            
+            <div class="settings-menu-list">
+                <div id="menuItemUserSpace" class="settings-menu-item" style="display:none;" onclick="openFormSheet('sheetUserSpace')">
+                    <div class="settings-menu-left">
+                        <span class="settings-menu-icon">👥</span>
+                        <span>Create New User Account</span>
+                    </div>
+                    <span style="color:var(--text-muted);">❯</span>
+                </div>
+
+                <div id="menuItemOverrideSpace" class="settings-menu-item" style="display:none;" onclick="openFormSheet('sheetOverrideSpace')">
+                    <div class="settings-menu-left">
+                        <span class="settings-menu-icon" style="color:var(--primary);">🔄</span>
+                        <span style="color:var(--primary); font-weight:800;">User Password Reset</span>
+                    </div>
+                    <span style="color:var(--text-muted);">❯</span>
+                </div>
+                
+                <div class="settings-menu-item" onclick="openFormSheet('sheetPasswordSpace')">
+                    <div class="settings-menu-left">
+                        <span class="settings-menu-icon">🔐</span>
+                        <span>Update Password</span>
+                    </div>
+                    <span style="color:var(--text-muted);">❯</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav" id="appBottomNav" style="display: none;">
+        <button class="nav-item active" id="btn-nav-home" onclick="switchNativeTab('home')">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" id="btn-nav-waiting" onclick="switchNativeTab('waiting')">
+            <span class="nav-icon">📞</span>
+            <span>Call Waiting</span>
+        </button>
+        <button class="nav-item" id="btn-nav-pending" onclick="switchNativeTab('pending')">
+            <span class="nav-icon">⏳</span>
+            <span>Pending</span>
+        </button>
+        <button class="nav-item" id="btn-nav-ledger" onclick="switchNativeTab('ledger')">
+            <span class="nav-icon">📋</span>
+            <span>Ledger</span>
+        </button>
+        <button class="nav-item" id="btn-nav-security" onclick="switchNativeTab('security')">
+            <span class="nav-icon">⚙️</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwWv1fk-EAoRiwMUKk72Zr01jR8b5qTNJuLdVmBxwN410Yw5kUDqA9r340foHSwqdr7hg/exec";
+        
+        let cacheLedgerData = [];
+        let dbEngineersList = []; 
+        let currentTargetRow = null;
+        let currentTargetStatus = null;
+        
+        let sessionRole = "";
+        let sessionName = "";
+        let sessionUser = ""; 
+
+        // 🛠️ NEW FUNCTION: ആപ്പ് ഓപ്പൺ ചെയ്യുമ്പോൾ തന്നെ ബാക്കെൻഡിൽ നിന്ന് യൂസർ ലിസ്റ്റ് എടുത്തു ഡ്രോപ്പ്ഡൗണിലേക്ക് ഇടുന്നു
+        function bootstrapEngineersListOnly() {
+            fetch(`${API_URL}?action=getAll&role=Admin&name=System&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(data => {
+                    dbEngineersList = data.engineers || [];
+                    populateEngineersDropdowns();
+                })
+                .catch(err => console.log("Background pre-fetch skipped or blocked by CORS demo mode."));
+        }
+
+        function populateEngineersDropdowns() {
+            // 1. Ledger Filter Dropdown Populate
+            const engineerFilterBox = document.getElementById('ledgerFilterEngineer');
+            if(engineerFilterBox) {
+                engineerFilterBox.innerHTML = '<option value="">All Engineers</option>';
+                dbEngineersList.forEach(eng => {
+                    engineerFilterBox.innerHTML += `<option value="${eng}">${eng}</option>`;
+                });
+            }
+
+            // 2. Admin Override Dropdown Populate
+            const overrideUserSelectBox = document.getElementById('resetTargetUser');
+            if(overrideUserSelectBox) {
+                overrideUserSelectBox.innerHTML = '<option value="">-- Choose User --</option>';
+                dbEngineersList.forEach(eng => {
+                    overrideUserSelectBox.innerHTML += `<option value="${eng}">${eng}</option>`;
+                });
+            }
+        }
+
+        // ആപ്പ് റൺ ചെയ്യുമ്പോൾ തന്നെ ബാക്ക്ഗ്രൗണ്ടിൽ ഫെച്ചിങ് സ്റ്റാർട്ട് ചെയ്യും
+        bootstrapEngineersListOnly();
+
+        function openFormSheet(sheetId) { document.getElementById(sheetId).style.display = 'flex'; }
+        function closeFormSheet(sheetId) { document.getElementById(sheetId).style.display = 'none'; }
+
+        function triggerAppLogoutPopup() { openFormSheet('sheetLogoutConfirm'); }
+
+        function confirmAppLogoutExecution() {
+            closeFormSheet('sheetLogoutConfirm');
+            sessionRole = ""; sessionName = ""; sessionUser = "";
+            document.getElementById('uName').value = ""; document.getElementById('pWord').value = "";
+            document.getElementById('menuItemUserSpace').style.display = 'none';
+            document.getElementById('menuItemOverrideSpace').style.display = 'none';
+            document.getElementById('loginError').style.display = 'none';
+            
+            document.getElementById('appHeader').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('appBottomNav').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'flex';
+            switchNativeTab('home');
+        }
+
+        function switchNativeTab(targetTabName) {
+            const views = ['home', 'waiting', 'pending', 'ledger', 'security'];
+            views.forEach(v => {
+                document.getElementById(`tab-view-${v}`).style.display = (v === targetTabName) ? 'block' : 'none';
+                document.getElementById(`btn-nav-${v}`).classList.toggle('active', v === targetTabName);
+            });
+            if(targetTabName === 'home') { filterHomeWaitingCalls(); }
+            if(targetTabName === 'pending') { searchLedger('Pending'); }
+            if(targetTabName === 'waiting') { searchLedger('Waiting'); }
+            if(targetTabName === 'ledger') { searchLedger('Ledger'); }
+        }
+
+        function checkLogin() {
+            const u = document.getElementById('uName').value.trim();
+            const p = document.getElementById('pWord').value;
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.querySelector('#loginOverlay .action-submit-btn');
+
+            if(!u || !p) { alert('Fill credentials.'); return; }
+            loginBtn.innerText = "Authorizing Encrypted Token...";
+            loginBtn.disabled = true;
+
+            fetch(`${API_URL}?action=verifyLogin&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res.success) {
+                        sessionRole = res.role; sessionName = res.name; sessionUser = u; 
+                        
+                        document.getElementById('userRoleTag').innerText = res.role;
+                        document.getElementById('userRealName').innerText = res.name;
+                        
+                        const filterGridWrapper = document.getElementById('ledgerFilterWrapperGrid');
+                        const engineerSelectBox = document.getElementById('ledgerFilterEngineer');
+
+                        if(res.role === "Admin") {
+                            document.getElementById('menuItemUserSpace').style.display = 'flex';
+                            document.getElementById('menuItemOverrideSpace').style.display = 'flex'; 
+                            if(engineerSelectBox) engineerSelectBox.style.display = 'block';
+                            if(filterGridWrapper) filterGridWrapper.classList.remove('single-col');
+                        } else {
+                            document.getElementById('menuItemUserSpace').style.display = 'none';
+                            document.getElementById('menuItemOverrideSpace').style.display = 'none';
+                            if(engineerSelectBox) engineerSelectBox.style.display = 'none';
+                            if(filterGridWrapper) filterGridWrapper.classList.add('single-col');
+                        }
+                        
+                        document.getElementById('loginOverlay').style.display = 'none';
+                        document.getElementById('appHeader').style.display = 'block';
+                        document.getElementById('appContainer').style.display = 'block';
+                        document.getElementById('appBottomNav').style.display = 'flex';
+                        loadAllLogs();
+                    } else {
+                        errorDiv.style.display = 'block';
+                        loginBtn.innerText = "Authorize Login";
+                        loginBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert('Server communication timeout.');
+                    loginBtn.innerText = "Authorize Login";
+                    loginBtn.disabled = false;
+                });
+        }
+
+        function executePasswordChange() {
+            const newPass = document.getElementById('changePWord').value.trim();
+            const confPass = document.getElementById('confirmPWord').value.trim();
+            const msgDiv = document.getElementById('passMgmtMsg');
+
+            if(!newPass || !confPass) { alert('Please enter and confirm your password.'); return; }
+            if(newPass !== confPass) { alert('Passwords do not match. Verify inputs.'); return; }
+            if(newPass.length < 6) { alert('Password must be at least 6 characters long.'); return; }
+
+            msgDiv.style.color = "var(--info)";
+            msgDiv.innerText = "Reconfiguring credentials encryption architecture...";
+
+            fetch(`${API_URL}?action=changePassword&username=${encodeURIComponent(sessionUser)}&newpassword=${encodeURIComponent(newPass)}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res.success) {
+                        msgDiv.style.color = "var(--success)";
+                        msgDiv.innerText = "Password updated securely in encrypted database!";
+                        document.getElementById('changePWord').value = '';
+                        document.getElementById('confirmPWord').value = '';
+                        setTimeout(() => { msgDiv.innerText = ''; closeFormSheet('sheetPasswordSpace'); switchNativeTab('home'); }, 2000);
+                    } else {
+                        msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Failed: " + res.message;
+                    }
+                })
+                .catch(err => {
+                    msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Database handshake timeout.";
+                });
+        }
+
+        function downloadAsExcel() {
+            if (!cacheLedgerData || cacheLedgerData.length === 0) {
+                alert("No structural log database rows available to export."); return;
+            }
+            const headers = ["Date", "Client Name", "Branch Location", "Complaint Details", "Contact Name", "Contact Number", "Action Log Remarks", "Closing Date", "Assigned Engineer", "Current Status"];
+            let csvContent = "\uFEFF"; csvContent += headers.join(",") + "\n";
+            
+            let dataToExport = cacheLedgerData;
+            if(sessionRole !== "Admin") {
+                dataToExport = cacheLedgerData.filter(row => (row['assignedto'] || '').toLowerCase().trim() === sessionName.toLowerCase().trim());
+            }
+
+            dataToExport.forEach(row => {
+                let cleanValues = [
+                    row['date'] || '', row['client'] || '', row['branch'] || '', row['complaint'] || '',
+                    row['name'] || '', row['number'] || '', row['remarks'] || '', row['closingdate'] || '',
+                    row['assignedto'] || '', row['status'] || ''
+                ].map(val => `"${String(val).replace(/"/g, '""')}"`);
+                csvContent += cleanValues.join(",") + "\n";
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.setAttribute("href", downloadUrl);
+            anchor.setAttribute("download", `Service_Ledger_Export_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(anchor); anchor.click(); document.body.removeChild(anchor);
+        }
+
+        function createUserAccount() {
+            const user = document.getElementById('newUsername').value.trim();
+            const pass = document.getElementById('newPassword').value.trim();
+            const name = document.getElementById('newRealName').value.trim();
+            const role = document.getElementById('newRole').value;
+            const msgDiv = document.getElementById('userMgmtMsg');
+
+            if(!user || !pass || !name || !role) { alert('All fields are mandatory!'); return; }
+            msgDiv.style.color = "var(--info)"; msgDiv.innerText = "Provisioning identity architecture...";
+
+            fetch(`${API_URL}?action=addUser&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}&name=${encodeURIComponent(name)}&role=${role}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res.success) {
+                        msgDiv.style.color = "var(--success)"; msgDiv.innerText = res.message;
+                        document.getElementById('newUsername').value = "";
+                        document.getElementById('newPassword').value = "";
+                        document.getElementById('newRealName').value = "";
+                        loadAllLogs(); 
+                        setTimeout(() => { msgDiv.innerText = ''; closeFormSheet('sheetUserSpace'); switchNativeTab('home'); }, 2000);
+                    } else {
+                        msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Error: " + res.message;
+                    }
+                })
+                .catch(err => { msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Network sync timeout."; });
+        }
+
+        function adminResetUserPassword() {
+            const targetUser = document.getElementById('resetTargetUser').value; 
+            const newPass = document.getElementById('resetNewPassword').value.trim();
+            const msgDiv = document.getElementById('userOverrideMsg'); 
+
+            if(!targetUser) { alert('Please select a target user!'); return; }
+            if(!newPass) { alert('New Password field is mandatory!'); return; }
+            if(newPass.length < 6) { alert('Password must be at least 6 characters long.'); return; }
+
+            msgDiv.style.color = "var(--info)"; msgDiv.innerText = "Executing Master Override on target credential vector...";
+
+            fetch(`${API_URL}?action=adminResetPassword&username=${encodeURIComponent(targetUser)}&newpassword=${encodeURIComponent(newPass)}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res.success) {
+                        msgDiv.style.color = "var(--success)"; msgDiv.innerText = res.message;
+                        document.getElementById('resetNewPassword').value = "";
+                        setTimeout(() => { msgDiv.innerText = ''; closeFormSheet('sheetOverrideSpace'); switchNativeTab('home'); }, 2000);
+                    } else {
+                        msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Error: " + res.message;
+                    }
+                })
+                .catch(err => { msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "Override sync execution failure."; });
+        }
+
+        function loadAllLogs() {
+            const syncIcon = document.querySelector('.sync-icon-btn'); syncIcon.innerText = "⏳";
+            
+            fetch(`${API_URL}?action=getAll&role=${sessionRole}&name=${encodeURIComponent(sessionName)}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(data => {
+                    cacheLedgerData = data.complaints; dbEngineersList = data.engineers || []; 
+                    processMetrics(data.complaints);
+                    
+                    document.getElementById('tab-ledger-total-count').innerText = data.complaints.length;
+                    
+                    // ലൈവ് സിങ്ക് കഴിഞ്ഞും ഡ്രോപ്പ്ഡൗൺ ലിസ്റ്റ് കൃത്യമായി അപ്ഡേറ്റ് ആകും
+                    populateEngineersDropdowns();
+
+                    filterHomeWaitingCalls(); searchLedger('Pending'); searchLedger('Waiting'); searchLedger('Ledger');
+                    syncIcon.innerText = "🔄";
+                })
+                .catch(err => { syncIcon.innerText = "🔄"; alert('Sync Failure Engine Connect Alert.'); });
+        }
+
+        function processMetrics(data) {
+            let total = data.length, pending = 0, spare = 0, resolved = 0, waiting = 0;
+            data.forEach(row => {
+                let status = (row['status'] || 'Pending').toLowerCase().trim();
+                if(status === 'resolved') resolved++;
+                else if(status === 'spare pending') spare++;
+                else if(status === 'call waiting') waiting++;
+                else if(status === 'pending' || status === 'in progress') pending++;
+            });
+            document.getElementById('count-total').innerText = total;
+            document.getElementById('count-pending').innerText = pending;
+            document.getElementById('count-spare').innerText = spare;
+            document.getElementById('count-waiting').innerText = waiting;
+            document.getElementById('count-resolved').innerText = resolved;
+        }
+
+        function filterHomeWaitingCalls() {
+            let waitingCalls = cacheLedgerData.filter(row => (row['status'] || '').toLowerCase().trim() === 'call waiting');
+            if(sessionRole !== "Admin") {
+                waitingCalls = waitingCalls.filter(row => (row['assignedto'] || '').toLowerCase().trim() === sessionName.toLowerCase().trim());
+            }
+            const targetContainer = document.getElementById('homeWaitingLogBoxContainer');
+            buildStructureBlocks(waitingCalls, targetContainer);
+        }
+
+        function searchLedger(statusType) {
+            const searchFieldId = statusType === 'Pending' ? 'devSearchPending' : (statusType === 'Waiting' ? 'devSearchWaiting' : 'devSearchLedger');
+            const query = document.getElementById(searchFieldId).value.toLowerCase().trim();
+            
+            let baseFiltered = cacheLedgerData;
+            if(sessionRole !== "Admin") {
+                baseFiltered = cacheLedgerData.filter(row => (row['assignedto'] || '').toLowerCase().trim() === sessionName.toLowerCase().trim());
+            }
+            
+            if(statusType === 'Pending') {
+                baseFiltered = baseFiltered.filter(row => {
+                    let currentStatus = (row['status'] || 'Pending').toLowerCase().trim();
+                    return currentStatus === 'pending' || currentStatus === 'in progress' || currentStatus === 'spare pending';
+                });
+            } else if (statusType === 'Waiting') {
+                baseFiltered = baseFiltered.filter(row => (row['status'] || 'Pending').toLowerCase().trim() === 'call waiting');
+            } else if (statusType === 'Ledger' && sessionRole === "Admin") {
+                const statusSelection = document.getElementById('ledgerFilterStatus').value.toLowerCase().trim();
+                const engineerSelection = document.getElementById('ledgerFilterEngineer').value.toLowerCase().trim();
+                if(statusSelection) baseFiltered = baseFiltered.filter(row => (row['status'] || '').toLowerCase().trim() === statusSelection);
+                if(engineerSelection) baseFiltered = baseFiltered.filter(row => (row['assignedto'] || '').toLowerCase().trim() === engineerSelection);
+            } else if (statusType === 'Ledger' && sessionRole !== "Admin") {
+                const statusSelection = document.getElementById('ledgerFilterStatus').value.toLowerCase().trim();
+                if(statusSelection) baseFiltered = baseFiltered.filter(row => (row['status'] || '').toLowerCase().trim() === statusSelection);
+            }
+
+            if(query) {
+                baseFiltered = baseFiltered.filter(row => {
+                    return (row['client'] || '').toLowerCase().includes(query) || (row['branch'] || '').toLowerCase().includes(query) || (row['complaint'] || '').toLowerCase().includes(query);
+                });
+            }
+            
+            const containerBoxId = statusType === 'Pending' ? 'pendingLogBoxContainer' : (statusType === 'Waiting' ? 'waitingLogBoxContainer' : 'ledgerLogBoxContainer');
+            const container = document.getElementById(containerBoxId);
+            buildStructureBlocks(baseFiltered, container);
+        }
+
+        function buildStructureBlocks(logs, targetDomContainer) {
+            targetDomContainer.innerHTML = '';
+            if(!logs || logs.length === 0) {
+                targetDomContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding:30px; font-size:13px; font-weight:700;">No active compiled entries matched.</p>'; return;
+            }
+            
+            let reversedLogs = logs.slice().reverse();
+            reversedLogs.forEach(row => {
+                let status = row['status'] || 'Pending'; let assignedTo = row['assignedto'] || '';
+                let pillColor = 'var(--warning)'; let pillBg = 'var(--warning-light)';
+                if(status.toLowerCase() === 'resolved') { pillColor = '#166534'; pillBg = 'var(--success-light)'; }
+                else if(status.toLowerCase() === 'spare pending') { pillColor = 'var(--purple)'; pillBg = 'var(--purple-light)'; }
+                else if(status.toLowerCase() === 'call waiting') { pillColor = 'var(--info)'; pillBg = 'var(--info-light)'; }
+
+                let assignmentUI = "";
+                if(sessionRole === "Admin" && status !== 'Resolved') {
+                    let options = `<option value="">Unassigned</option>`;
+                    dbEngineersList.forEach(eng => { options += `<option value="${eng}" ${assignedTo === eng ? 'selected' : ''}>${eng}</option>`; });
+                    assignmentUI = `<select class="native-select" style="padding:6px 10px; width:auto;" onchange="assignEngineer(${row['rowindex']}, this.value)">${options}</select>`;
+                } else {
+                    assignmentUI = assignedTo ? `<span style="font-size:12px; font-weight:800; color:var(--text-dark);">👤 ${assignedTo}</span>` : '<span style="color:var(--text-muted); font-size:11px; font-weight:700;">Unassigned</span>';
+                }
+
+                let statusDisabledAttr = (status === 'Resolved' && sessionRole !== 'Admin') ? 'disabled' : '';
+
+                const block = document.createElement('div'); block.className = 'log-list-row';
+                block.innerHTML = `
+                    <div class="log-top-line">
+                        <div>
+                            <div class="log-client-title">${row['client'] || 'Unknown Client'}</div>
+                            <div class="log-meta-subtitle">${row['branch'] || 'Main Branch'} • <span style="font-family:monospace; font-weight:800;">${row['date'] || ''}</span></div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="status-pill-text" style="color:${pillColor}; background:${pillBg};">${status}</span>
+                            <div class="log-meta-subtitle" style="font-size:10px; margin-top:2px;">Closed: ${row['closingdate'] || 'Active'}</div>
+                        </div>
+                    </div>
+                    <div class="log-body-details"><strong>Issue:</strong> ${row['complaint'] || 'No details'}</div>
+                    <div class="log-meta-subtitle" style="margin: 6px 2px; color:var(--text-dark);"><strong>Remarks:</strong> ${row['remarks'] || 'None'}</div>
+                    <div class="log-footer-actions">
+                        ${row['number'] ? `<a class="native-call-btn" href="tel:${row['number']}">📞 Call (${row['name'] || 'Staff'})</a>` : '<span style="color:var(--text-muted); font-size:11px; font-weight:700;">No Contact</span>'}
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            ${assignmentUI}
+                            <select class="native-select" style="border-color:var(--primary); padding:6px 10px; width:auto;" ${statusDisabledAttr} onchange="triggerVerification(${row['rowindex']}, this.value, '${status}')">
+                                <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="In Progress" ${status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="Spare Pending" ${status === 'Spare Pending' ? 'selected' : ''}>Spare Pending</option>
+                                <option value="Call Waiting" ${status === 'Call Waiting' ? 'selected' : ''}>Call Waiting</option>
+                                <option value="Resolved" ${status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                targetDomContainer.appendChild(block);
+            });
+        }
+
+        function assignEngineer(rowId, selectedEngineer) {
+            fetch(`${API_URL}?action=assign&row=${rowId}&engineer=${encodeURIComponent(selectedEngineer)}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => { if(!res.success) alert('Assignment Failed: ' + res.message); else loadAllLogs(); })
+                .catch(err => alert('Network error during assignment.'));
+        }
+
+        function triggerVerification(rowId, nextStatus, oldStatus) {
+            if (nextStatus === 'In Progress') {
+                executeStatusUpdate(rowId, nextStatus, "Shifted to work-in-progress framework."); return;
+            }
+            currentTargetRow = rowId; currentTargetStatus = nextStatus;
+            document.getElementById('modalTitle').innerText = `Transition: ${nextStatus}`;
+            document.getElementById('actionRemarks').value = '';
+            document.getElementById('verifyModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('verifyModal').style.display = 'none'; loadAllLogs(); }
+
+        function commitStatusUpdate() {
+            const remarksInput = document.getElementById('actionRemarks').value.trim();
+            if(!remarksInput) { alert('Please enter remarks.'); return; }
+            document.getElementById('verifyModal').style.display = 'none';
+            executeStatusUpdate(currentTargetRow, currentTargetStatus, remarksInput);
+        }
+
+        function executeStatusUpdate(rowId, statusName, remarksText) {
+            fetch(`${API_URL}?action=update&row=${rowId}&status=${encodeURIComponent(statusName)}&remarks=${encodeURIComponent(remarksText)}&role=${sessionRole}&_=${new Date().getTime()}`)
+                .then(res => res.json())
+                .then(res => { if(res.success) loadAllLogs(); else alert('Error: ' + res.message); })
+                .catch(err => alert('Sync Timeout.'));
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `self.addEventListener('fetch', function(event) {});`;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log("Bypass enabled"));
+            });
+        }
+    </script>
+</body>
+</html>
