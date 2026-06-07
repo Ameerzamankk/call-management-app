@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Workspace">
 
-    <!-- 📲 PWA Manifest configuration -->
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Unified%20Enterprise%20Workspace%22%2C%22short_name%22%3A%22Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F9FC%22%2C%22theme_color%22%3A%22%231D4ED8%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F9063%2F9063435.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%2Fpng%22%7D%5D%7D">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Unified%20Enterprise%22%2C%22short_name%22%3A%22Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F9FC%22%2C%22theme_color%22%3A%22%231D4ED8%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F9063%2F9063435.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%2Fpng%22%7D%5D%7D">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -19,14 +19,11 @@
             --bg-app: #F8FAFC; 
             --bg-card: #FFFFFF;
             --border-subtle: #CBD5E1; 
-            
             --text-dark: #0F172A; 
             --text-muted: #475569; 
-            
             --primary: #1D4ED8; 
             --primary-light: #EFF6FF; 
             --dark-accent: #0F172A;
-            
             --success: #16A34A; 
             --success-light: #F0FDF4;
             --warning: #D97706; 
@@ -35,7 +32,6 @@
             --info-light: #EEF4FF;
             --purple: #7C3AED;
             --purple-light: #F4F0FF;
-
             --radius-card: 16px;
             --radius-pill: 30px;
             --shadow-app: 0 4px 20px rgba(142, 151, 168, 0.08);
@@ -409,6 +405,9 @@
                 <label class="form-label">Password</label>
                 <input type="password" id="pWord" class="form-input-box" placeholder="Enter password">
                 <button class="action-submit-btn" onclick="checkLogin()">Authorize Login</button>
+                
+                <!-- 📲 Manual Install Button (പോപ്പ്അപ്പ് വന്നില്ലെങ്കിൽ ഇത് വഴി ഇൻസ്റ്റാൾ ചെയ്യാം) -->
+                <button id="manualInstallBtn" class="action-submit-btn" style="background:#475569; margin-top:10px; display:none;">📲 Install App To Mobile</button>
             </div>
         </div>
     </div>
@@ -673,15 +672,30 @@
         let sessionName = "";
         let sessionUser = ""; 
 
-        // 📲 PWA Installation Prompter Variable
+        // 📲 PWA Installer Logic
         let deferredPrompt = null;
+        const manualInstallBtn = document.getElementById('manualInstallBtn');
 
-        // ബ്രൗസർ ഇൻസ്റ്റലേഷൻ ഇവന്റ് ക്യാപ്‌ചർ ചെയ്യുന്നു
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            console.log('PWA installation prompt cached and ready.');
+            // ബ്രൗസർ ഇൻസ്റ്റലേഷൻ സപ്പോർട്ട് ചെയ്യുന്നുണ്ടെങ്കിൽ ബട്ടൺ കാണിക്കും
+            if(manualInstallBtn) manualInstallBtn.style.display = 'block';
         });
+
+        if(manualInstallBtn) {
+            manualInstallBtn.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choice) => {
+                        if (choice.outcome === 'accepted') {
+                            manualInstallBtn.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            });
+        }
 
         function bootstrapEngineersListOnly() {
             fetch(`${API_URL}?action=getAll&role=Admin&name=System&_=${new Date().getTime()}`)
@@ -786,8 +800,11 @@
                         
                         loadAllLogs();
 
-                        // 📲 ലോഗിൻ വിജയകരമായാൽ ഉടൻ ആപ്പ് ഇൻസ്റ്റാൾ ചെയ്യാനുള്ള പോപ്പ്അപ്പ് കാണിക്കുന്നു
-                        triggerPWAInstallation();
+                        // 📲 ലോഗിൻ സക്സസ് ആയാൽ ഓട്ടോമാറ്റിക് പോപ്പ്അപ്പ് ട്രിഗർ ചെയ്യും (സപ്പോർട്ടഡ് ആണെങ്കിൽ)
+                        if (deferredPrompt) {
+                            deferredPrompt.prompt();
+                            deferredPrompt = null;
+                        }
 
                     } else {
                         errorDiv.style.display = 'block';
@@ -800,23 +817,6 @@
                     loginBtn.innerText = "Authorize Login";
                     loginBtn.disabled = false;
                 });
-        }
-
-        // ഇൻസ്റ്റലേഷൻ പോപ്പ്അപ്പ് ട്രിഗർ ചെയ്യുന്ന ഫംഗ്ഷൻ
-        function triggerPWAInstallation() {
-            if (deferredPrompt) {
-                setTimeout(() => {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('User accepted the install prompt');
-                        } else {
-                            console.log('User dismissed the install prompt');
-                        }
-                        deferredPrompt = null;
-                    });
-                }, 1000); // 1 സെക്കന്റ് കഴിഞ്ഞു പോപ്പ്അപ്പ് വരും
-            }
         }
 
         function executePasswordChange() {
@@ -1104,22 +1104,21 @@
                 .catch(err => alert('Sync Timeout.'));
         }
 
-        // 📲 യഥാർത്ഥ ഓഫ്‌ലൈൻ സപ്പോർട്ടുള്ള Service Worker ഫെച്ചിംഗ് എറർ ഒഴിവാക്കാൻ
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
                     self.addEventListener('install', (e) => self.skipWaiting());
                     self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
                     self.addEventListener('fetch', (e) => {
-                        // ബ്രൗസറിനെ കബളിപ്പിക്കാൻ ലളിതമായ ഫെച്ച് റെസ്പോൺസ്
                         e.respondWith(fetch(e.request).catch(() => new Response("Offline Mode")));
                     });
                 `;
                 const blob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(blob);
                 navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log("PWA Service Worker registered successfully."))
-                    .catch(err => console.log("SW bypass enabled"));
+                    .then(() => console.log("PWA Active"))
+                    .catch(err => console.log("SW Alert"));
             });
         }
     </script>
