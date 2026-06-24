@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Workspace">
 
-    <!-- 🔗 GitHub Pages-ൽ കൃത്യമായി പാത്ത് കിട്ടാൻ തിരുത്തിയ രൂപം -->
     <link rel="manifest" href="./manifest.json">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
@@ -48,6 +47,47 @@
             color: var(--text-dark);
             overflow-x: hidden;
             padding-bottom: 100px;
+        }
+
+        /* Pull to Refresh Visual Indicator */
+        .ptr-element {
+            position: fixed;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            color: var(--primary);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-subtle);
+            z-index: 10002;
+            transition: transform 0.15s ease;
+        }
+        .ptr-loading {
+            animation: ptrSpin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes ptrSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Circular Loading Spinner CSS */
+        .login-spinner {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 4px solid var(--border-subtle);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            margin: 15px auto 0 auto;
+            animation: loginSpin 0.8s linear infinite;
+        }
+        @keyframes loginSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Header Section */
@@ -96,20 +136,6 @@
             align-items: center;
             gap: 6px;
         }
-        .sync-icon-btn {
-            background: var(--bg-app);
-            border: 1px solid var(--border-subtle);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-dark);
-            transition: transform 0.2s;
-        }
         .logout-top-btn {
             background: var(--primary-light);
             border: 1px solid rgba(29, 78, 216, 0.25);
@@ -121,7 +147,7 @@
             font-weight: 800;
             cursor: pointer;
         }
-        .sync-icon-btn:active, .logout-top-btn:active { transform: scale(0.95); }
+        .logout-top-btn:active { transform: scale(0.95); }
 
         /* Main Content Container */
         .main-content {
@@ -407,6 +433,8 @@
 </head>
 <body>
 
+    <div id="ptrIndicator" class="ptr-element"><span class="ptr-loading">⏳</span> Syncing Dashboard...</div>
+
     <div id="loginOverlay">
         <div class="login-mobile-view">
             <div class="brand-logo-ui">Call Management System<span>.</span></div>
@@ -417,11 +445,12 @@
                 <input type="text" id="uName" class="form-input-box" placeholder="Enter username">
                 <label class="form-label">Password</label>
                 <input type="password" id="pWord" class="form-input-box" placeholder="Enter password">
-                <button class="action-submit-btn" onclick="checkLogin()">Login</button>
+                
+                <button id="loginSubmitBtn" class="action-submit-btn" onclick="checkLogin()">Login</button>
+                
+                <div id="loginSpinner" class="login-spinner"></div>
                 
                 <button id="loginInstallBtn" class="action-submit-btn" style="background:#16A34A; margin-top:12px; display:none;">📲 Install App to Mobile</button>
-                
-                
             </div>
         </div>
     </div>
@@ -515,7 +544,6 @@
                 <span id="userRoleTag" class="user-role-badge">Loading...</span>
             </div>
             <div class="header-actions-wrapper">
-                <button class="sync-icon-btn" onclick="loadAllLogs()">🔄</button>
                 <button class="logout-top-btn" onclick="triggerAppLogoutPopup()">Logout</button>
             </div>
         </div>
@@ -689,13 +717,11 @@
         // PWA Installer Logic
         let deferredPrompt = null;
         const loginInstallBtn = document.getElementById('loginInstallBtn');
-        const backupGuide = document.getElementById('backupInstallGuide');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             if(loginInstallBtn) loginInstallBtn.style.display = 'block';
-            if(backupGuide) backupGuide.style.display = 'none';
         });
 
         if(loginInstallBtn) {
@@ -714,13 +740,7 @@
 
         window.addEventListener('appinstalled', () => {
             if(loginInstallBtn) loginInstallBtn.style.display = 'none';
-            if(backupGuide) backupGuide.style.display = 'none';
         });
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isIOS && backupGuide) {
-            backupGuide.innerHTML = '🍏 <b>iPhone-ൽ ഇൻസ്റ്റാൾ ചെയ്യാൻ:</b> താഴെയുള്ള <b>Share (അമ്പ് അടയാളം)</b> ക്ലിക്ക് ചെയ്ത് <b>"Add to Home Screen"</b> സെലക്ട് ചെയ്യുക.';
-        }
 
         function bootstrapEngineersListOnly() {
             fetch(`${API_URL}?action=getAll&role=Admin&name=System&_=${new Date().getTime()}`)
@@ -788,15 +808,21 @@
             const u = document.getElementById('uName').value.trim();
             const p = document.getElementById('pWord').value;
             const errorDiv = document.getElementById('loginError');
-            const loginBtn = document.querySelector('#loginOverlay .action-submit-btn');
+            const loginBtn = document.getElementById('loginSubmitBtn');
+            const spinner = document.getElementById('loginSpinner');
 
             if(!u || !p) { alert('Fill credentials.'); return; }
-            loginBtn.innerText = "Login...";
+            
             loginBtn.disabled = true;
+            spinner.style.display = 'block';
+            errorDiv.style.display = 'none';
 
             fetch(`${API_URL}?action=verifyLogin&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&_=${new Date().getTime()}`)
                 .then(res => res.json())
                 .then(res => {
+                    spinner.style.display = 'none';
+                    loginBtn.disabled = false;
+
                     if(res.success) {
                         sessionRole = res.role; sessionName = res.name; sessionUser = u; 
                         
@@ -826,14 +852,12 @@
                         loadAllLogs();
                     } else {
                         errorDiv.style.display = 'block';
-                        loginBtn.innerText = "Authorize Login";
-                        loginBtn.disabled = false;
                     }
                 })
                 .catch(err => {
-                    alert('Server communication timeout.');
-                    loginBtn.innerText = "Authorize Login";
+                    spinner.style.display = 'none';
                     loginBtn.disabled = false;
+                    alert('Server communication timeout.');
                 });
         }
 
@@ -949,8 +973,6 @@
         }
 
         function loadAllLogs() {
-            const syncIcon = document.querySelector('.sync-icon-btn'); syncIcon.innerText = "⏳";
-            
             fetch(`${API_URL}?action=getAll&role=${sessionRole}&name=${encodeURIComponent(sessionName)}&_=${new Date().getTime()}`)
                 .then(res => res.json())
                 .then(data => {
@@ -965,9 +987,8 @@
                     populateEngineersDropdowns();
 
                     filterHomeWaitingCalls(); searchLedger('Pending'); searchLedger('Waiting'); searchLedger('Ledger');
-                    syncIcon.innerText = "🔄";
                 })
-                .catch(err => { syncIcon.innerText = "🔄"; alert('Sync Failure Engine Connect Alert.'); });
+                .catch(err => { alert('Sync Failure Engine Connect Alert.'); });
         }
 
         function processMetrics(data) {
@@ -992,7 +1013,35 @@
                 waitingCalls = waitingCalls.filter(row => (row['assignedto'] || '').toLowerCase().trim() === sessionName.toLowerCase().trim());
             }
             const targetContainer = document.getElementById('homeWaitingLogBoxContainer');
-            buildStructureBlocks(waitingCalls, targetContainer);
+            buildHomeWaitingBlocks(waitingCalls, targetContainer);
+        }
+
+        // ഹോമിൽ വെറും ടെക്സ്റ്റ് മാത്രം കാണിക്കാനുള്ള ലളിതമായ ഫങ്ക്ഷൻ
+        function buildHomeWaitingBlocks(logs, targetDomContainer) {
+            targetDomContainer.innerHTML = '';
+            if(!logs || logs.length === 0) {
+                targetDomContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size:13px; font-weight:700;">No calls inside waiting vector</p>'; return;
+            }
+            
+            let reversedLogs = logs.slice().reverse();
+            reversedLogs.forEach(row => {
+                const block = document.createElement('div');
+                block.style.background = 'var(--bg-card)';
+                block.style.padding = '12px 14px';
+                block.style.marginBottom = '8px';
+                block.style.borderRadius = '12px';
+                block.style.border = '1px solid var(--border-subtle)';
+                block.style.boxShadow = 'var(--shadow-app)';
+                block.style.fontSize = '14px';
+                block.style.lineHeight = '1.4';
+
+                block.innerHTML = `
+                    <div style="font-weight: 800; color: var(--text-dark); font-size: 15px;">${row['client'] || 'Unknown Client'}</div>
+                    <div style="font-weight: 700; color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">📍 ${row['branch'] || 'Main Branch'}</div>
+                    <div style="color: var(--text-dark); font-weight: 600;"><span style="color: var(--primary); font-weight: 800;">Issue:</span> ${row['complaint'] || 'No details'}</div>
+                `;
+                targetDomContainer.appendChild(block);
+            });
         }
 
         function searchLedger(statusType) {
@@ -1121,6 +1170,65 @@
                 .then(res => { if(res.success) loadAllLogs(); else alert('Error: ' + res.message); })
                 .catch(err => alert('Sync Timeout.'));
         }
+
+        // Pull-to-Refresh Logic
+        let touchStartPoint = 0;
+        let touchMovePoint = 0;
+        const ptrIndicator = document.getElementById('ptrIndicator');
+
+        window.addEventListener('touchstart', function(e) {
+            if (document.getElementById('appContainer').style.display === 'block' && window.scrollY === 0) {
+                touchStartPoint = e.touches[0].clientY;
+            } else {
+                touchStartPoint = 0;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function(e) {
+            if (touchStartPoint === 0) return;
+            
+            touchMovePoint = e.touches[0].clientY;
+            let swipeDistance = touchMovePoint - touchStartPoint;
+
+            if (swipeDistance > 0 && swipeDistance < 120) {
+                ptrIndicator.style.transform = `translateY(${Math.min(swipeDistance, 70)}px)`;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', function(e) {
+            let swipeDistance = touchMovePoint - touchStartPoint;
+            touchStartPoint = 0;
+            touchMovePoint = 0;
+
+            if (swipeDistance > 60) {
+                ptrIndicator.style.transform = 'translateY(50px)';
+                
+                fetch(`${API_URL}?action=getAll&role=${sessionRole}&name=${encodeURIComponent(sessionName)}&_=${new Date().getTime()}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        cacheLedgerData = data.complaints;
+                        dbEngineersList = data.engineers || []; 
+                        processMetrics(data.complaints);
+                        
+                        const ledgerTotalCountEl = document.getElementById('tab-ledger-total-count');
+                        if (ledgerTotalCountEl) ledgerTotalCountEl.innerText = data.complaints.length;
+                        
+                        populateEngineersDropdowns();
+                        filterHomeWaitingCalls(); 
+                        searchLedger('Pending'); 
+                        searchLedger('Waiting'); 
+                        searchLedger('Ledger');
+                        
+                        ptrIndicator.style.transform = 'translateY(0)';
+                    })
+                    .catch(err => {
+                        ptrIndicator.style.transform = 'translateY(0)';
+                        alert('Sync Failure Engine Connect Alert.');
+                    });
+            } else {
+                ptrIndicator.style.transform = 'translateY(0)';
+            }
+        });
 
         // Service Worker Logic
         if ('serviceWorker' in navigator) {
